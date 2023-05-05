@@ -59,15 +59,17 @@ interface PageInfo {
  * Navigates to a different page / route
  * @param page A page name, a page path or an absolute url to an external website
  * @param queryString Here you can optionally provide a queryString
+ * @returns {Promise<void>}
  */
 export async function navigate(page: string, queryString?: URLSearchParams | string | object): Promise<void> {
     return await window.__maloon__.navfn.navigate(page, queryString)
 }
 
 /**
- * Navigates to a different page / route and enforces a fresh component load. This can be useful when javascript is renderd on the server
+ * Navigates to a different page / route and enforces a fresh component load. This can be useful when javascript is rendered on the server
  * @param page A page name, a page path or an absolute url to an external website
  * @param queryString Here you can optionally provide a queryString
+ * @returns {Promise<void>}
  */
 export async function navigateFresh(page: string, queryString?: URLSearchParams | string | object): Promise<void> {
     return await window.__maloon__.navfn.navigateFresh(page, queryString)
@@ -77,6 +79,19 @@ export async function navigateFresh(page: string, queryString?: URLSearchParams 
  * Opens a new tab with the specified page / route
  * @param page A page name, a page path or an absolute url to an external website
  * @param queryString Here you can optionally provide a queryString
+ * @returns {PageInfo} Will look like this: 
+```ts
+{
+    name: string,
+    path: string,
+    query: ParsedQueryString => Object,
+    close(): void,
+    isControlledByOtherPage(): boolean,
+    refresh(): void,
+    back(): void
+    forward(): void
+}
+```
  */
 export function open(page: string, queryString?: URLSearchParams | string | object): PageInfo {
     return window.__maloon__.navfn.open(page, queryString)
@@ -84,6 +99,19 @@ export function open(page: string, queryString?: URLSearchParams | string | obje
 
 /**
  * Returns info and methods giving useful information about the current page
+* @returns {PageInfo} Will look like this:
+```ts
+{
+    name: string,
+    path: string,
+    query: ParsedQueryString => Object,
+    close(): void,
+    isControlledByOtherPage(): boolean,
+    refresh(): void,
+    back(): void
+    forward(): void
+}
+```
  */
 export function Page(): PageInfo {
     return window.__maloon__.navfn.Page()
@@ -96,7 +124,7 @@ type StateCompatible = string | null | number | boolean | StateCompatible[] | St
 /**
  * Saves current state so that it can be recovered on reload. 
  * NOTE: This is done automatically when using open() or navigating to an external page.
- * NOTE2: State will only be saved for the current browser session
+ * NOTE2: State will only be saved until next page load
  */
 function saveState() {
     const serialized = JSON.stringify(window.__maloon__.state)
@@ -123,7 +151,7 @@ function clearSavedState() {
 /**
  * Stores a value in the state
  * @param key Key for the data
- * @param value Whatever you want to save. Just make sure it's JSON serializabile
+ * @param value Whatever you want to save. Just make sure it's JSON serializable
  * @example setState('key', 'value')
  */
 function setState(key: string | number, value: StateCompatible) {
