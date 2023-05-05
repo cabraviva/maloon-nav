@@ -1,0 +1,6 @@
+lib/
+.dccache
+nautus
+.gitattributes
+.gitignore
+tsconfig.json
