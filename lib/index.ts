@@ -6,6 +6,9 @@ declare global {
                 navigateFresh(page: string, queryString?: URLSearchParams | string | object): Promise<void>,
                 open(page: string, queryString?: URLSearchParams | string | object): PageInfo,
                 Page(): PageInfo
+            },
+            state: {
+                [key: string]: StateCompatible
             }
         }
     }
@@ -84,4 +87,63 @@ export function open(page: string, queryString?: URLSearchParams | string | obje
  */
 export function Page(): PageInfo {
     return window.__maloon__.navfn.Page()
+}
+
+type StateCompatibleObject = {
+    [key: string]: StateCompatible
+}
+type StateCompatible = string | null | number | boolean | StateCompatible[] | StateCompatibleObject
+/**
+ * Saves current state so that it can be recovered on reload. 
+ * NOTE: This is done automatically when using open() or navigating to an external page.
+ * NOTE2: State will only be saved for the current browser session
+ */
+function saveState() {
+    const serialized = JSON.stringify(window.__maloon__.state)
+    localStorage.setItem('__maloon_state__', serialized)
+}
+
+/**
+ * Loads stored state.
+ * NOTE: This will be done automatically when using definePages()
+ */
+function loadState() {
+    const storage = window.localStorage.getItem('__maloon_state__')
+    if (typeof storage === 'string') {
+        const parsed = JSON.parse(storage)
+        window.__maloon__.state = parsed
+        clearSavedState()
+    }
+}
+
+function clearSavedState() {
+    window.localStorage.removeItem('__maloon_state__')
+}
+
+/**
+ * Stores a value in the state
+ * @param key Key for the data
+ * @param value Whatever you want to save. Just make sure it's JSON serializabile
+ * @example setState('key', 'value')
+ */
+function setState(key: string | number, value: StateCompatible) {
+    if (value === undefined) value = null
+    window.__maloon__.state[key.toString()] = value
+}
+
+/**
+ * Retrieves some data from the state
+ * @param key Key for the data
+ * @returns {StateCompatible} Anything that is JSON serializable
+ * @example getState('key')
+ */
+function getState(key: string | number): StateCompatible {
+    return window.__maloon__.state[key.toString()]
+}
+
+export const state = {
+    get: getState,
+    set: setState,
+    save: saveState,
+    load: loadState
 }
